@@ -2,6 +2,7 @@ import sqlite3
 import os
 from datetime import datetime
 
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "truthguard.db")
 
@@ -56,3 +57,34 @@ def fetch_history(limit=50):
     conn.close()
 
     return rows
+
+def get_dashboard_stats():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM predictions")
+    total = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM predictions WHERE prediction='real'"
+    )
+    real_count = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT COUNT(*) FROM predictions WHERE prediction='fake'"
+    )
+    fake_count = cursor.fetchone()[0]
+
+    cursor.execute(
+        "SELECT AVG(confidence) FROM predictions"
+    )
+    avg_confidence = cursor.fetchone()[0]
+
+    conn.close()
+
+    return {
+        "total": total,
+        "real": real_count,
+        "fake": fake_count,
+        "avg_confidence": round((avg_confidence or 0) * 100, 2)
+    }

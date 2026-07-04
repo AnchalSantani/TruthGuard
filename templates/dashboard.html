@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthGuard Dashboard</title>
+
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+
+<body>
+
+    <div class="dashboard-header">
+        <h1>TruthGuard Dashboard</h1>
+        <p>Monitor fake news detection analytics in real time</p>
+    </div>
+
+    <div class="stats-container">
+
+        <div class="card">
+            <h2>Total Predictions</h2>
+            <p>{{ total }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Real News</h2>
+            <p>{{ real }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Fake News</h2>
+            <p>{{ fake }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Average Confidence</h2>
+            <p>{{ avg_confidence }}%</p>
+        </div>
+
+    </div>
+
+    <div class="history-section">
+
+        <h2>Recent Predictions</h2>
+
+        <table id="historyTable">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Prediction</th>
+                    <th>Confidence</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+
+            <tbody>
+    {% for row in history %}
+    <tr>
+        <td>{{ row[0] }}</td>
+
+        <td>
+            {% if row[2] == 'real' %}
+                ✅ Real
+            {% else %}
+                ❌ Fake
+            {% endif %}
+        </td>
+
+        <td>{{ "%.2f"|format(row[3] * 100) }}%</td>
+
+        <td>{{ row[4][:19].replace('T', ' ') }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+
+        </table>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+
+</body>
+
+</html>

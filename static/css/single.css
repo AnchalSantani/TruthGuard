@@ -701,3 +701,27 @@ body {
         gap: 1rem;
     }
 }
+
+.trust-score-card,
+.reasons-card {
+    background: white;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+#trust-score {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #7c3aed;
+}
+
+#reasons-list {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+#reasons-list li {
+    margin-bottom: 8px;
+}

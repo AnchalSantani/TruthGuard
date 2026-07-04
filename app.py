@@ -11,6 +11,9 @@ import requests
 from dotenv import load_dotenv
 from database.db import init_db
 from database.db import insert_prediction
+from database.db import get_dashboard_stats
+from database.db import fetch_history
+from models.source_checker import analyze_source
 
 # -------------------------
 # ✅ PROPER ENV LOADING
@@ -334,30 +337,160 @@ def image_verification():
 def file_verification():
     return render_template('file.html')
 
+@app.route('/dashboard')
+def dashboard():
+
+    stats = get_dashboard_stats()
+    history = fetch_history(10)
+
+    return render_template(
+        'dashboard.html',
+        total=stats['total'],
+        real=stats['real'],
+        fake=stats['fake'],
+        avg_confidence=stats['avg_confidence'],
+        history=history
+    )
+
+def generate_explanation(text, prediction, confidence):
+    reasons = []
+
+    words = len(text.split())
+
+    if words < 20:
+        reasons.append("Very short article with limited context.")
+
+    sensational_words = [
+        "shocking",
+        "secret",
+        "breaking",
+        "miracle",
+        "unbelievable",
+        "exposed",
+        "viral",
+        "must see"
+    ]
+
+    found = []
+
+    for word in sensational_words:
+        if word.lower() in text.lower():
+            found.append(word)
+
+    if found:
+        reasons.append(
+            f"Sensational language detected: {', '.join(found)}"
+        )
+
+    trusted_sources = [
+        "reuters",
+        "bbc",
+        "ap news",
+        "associated press",
+        "who",
+        "unicef",
+        "government",
+        "times of india",
+        "the hindu"
+    ]
+
+    source_found = False
+
+    for source in trusted_sources:
+        if source.lower() in text.lower():
+            source_found = True
+            reasons.append(
+                f"References trusted source: {source}"
+            )
+            break
+
+    if not source_found:
+        reasons.append(
+            "No trusted news source detected in the article."
+        )
+
+    if confidence > 0.90:
+        reasons.append(
+            "Model prediction confidence is very high."
+        )
+
+    return reasons
+
+def calculate_trust_score(prediction, confidence, source_score):
+    """
+    Calculate the overall trust score using:
+    - ML confidence
+    - Source credibility
+    """
+
+    confidence_score = confidence * 100
+
+    if prediction == "real":
+        trust_score = (0.7 * confidence_score) + (0.3 * source_score)
+    else:
+        trust_score = (0.5 * confidence_score) + (0.1 * source_score)
+
+    trust_score = max(0, min(round(trust_score), 100))
+
+    return trust_score
+
 @app.route('/api/predict', methods=['POST'])
 def predict():
     try:
         data = request.json
         news_text = data.get('text', '')
-        
+
         if not news_text.strip():
-            return jsonify({'success': False, 'error': 'Please enter some text to analyze'})
-        
+            return jsonify({
+                'success': False,
+                'error': 'Please enter some text to analyze'
+            })
+
         logger.info(f"🔍 Analyzing single news text (length: {len(news_text)})")
+
+        # ML Prediction
         result_text = check_news(news_text)
-        
+
         if 'Real News' in result_text:
             prediction = 'real'
             emoji = '✅'
         else:
             prediction = 'fake'
             emoji = '❌'
-        
-        confidence_match = re.search(r'Confidence:\s*([\d.]+)%', result_text)
-        confidence = float(confidence_match.group(1)) / 100 if confidence_match else 0.85
-        
+
+        # Extract confidence
+        confidence_match = re.search(
+            r'Confidence:\s*([\d.]+)%',
+            result_text
+        )
+
+        confidence = (
+            float(confidence_match.group(1)) / 100
+            if confidence_match
+            else 0.85
+        )
+
+        # Word Analysis
         fake_words, real_words = generate_word_analysis(news_text)
-        
+
+        # AI Explanation
+        reasons = generate_explanation(
+            news_text,
+            prediction,
+            confidence
+        )
+
+        # Source Intelligence
+        source = analyze_source(news_text)
+
+        # Trust Score
+        trust_score = calculate_trust_score(
+            prediction,
+            confidence,
+            source["score"]
+        )
+
+        # Save history
         analysis_history.append({
             'type': 'single',
             'text': news_text[:100] + '...' if len(news_text) > 100 else news_text,
@@ -366,27 +499,49 @@ def predict():
             'timestamp': datetime.now().isoformat()
         })
 
+        # Save to SQLite
         insert_prediction(
             news_text,
             prediction,
             confidence
         )
-        
+
+        # Response
         return jsonify({
             'success': True,
+
             'prediction': prediction,
             'emoji': emoji,
             'confidence': confidence,
+
+            'trustScore': trust_score,
+
+            'source': source["name"],
+            'sourceCategory': source["category"],
+            'sourceCredibility': source["credibility"],
+            'sourceScore': source["score"],
+            'sourceReason': source["reason"],
+
+            'reasons': reasons,
+
             'fakeWords': fake_words,
             'realWords': real_words,
+
             'message': f'{emoji} This news appears to be {prediction}',
+
             'fullResult': result_text,
+
             'analysisId': len(analysis_history)
         })
-        
+
     except Exception as e:
         logger.error(f"Error in predict: {str(e)}")
-        return jsonify({'success': False, 'error': 'Internal server error. Please try again.'}), 500
+
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error. Please try again.'
+        }), 500
+    
 
 @app.route('/api/predict-bulk', methods=['POST'])
 def predict_bulk():
@@ -437,6 +592,9 @@ def predict_bulk():
         return jsonify({
             'success': True,
             'results': results,
+            "source": source_info["source"],
+            "sourceCredibility": source_info["credibility"],
+            "sourceScore": source_info["score"],
             'summary': {
                 'total': len(results),
                 'real': len([r for r in results if r['prediction'] == 'real']),

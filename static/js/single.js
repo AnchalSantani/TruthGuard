@@ -155,6 +155,26 @@ function displayResults(result) {
     const confidencePercent = Math.round(result.confidence * 100);
     
     confidenceValue.textContent = confidencePercent + '%';
+// Trust Score
+const trustScore = document.getElementById('trust-score');
+
+if (trustScore) {
+    trustScore.textContent = result.trustScore + '/100';
+}
+
+// Reasons
+const reasonsList = document.getElementById('reasons-list');
+
+if (reasonsList) {
+    reasonsList.innerHTML = '';
+
+    result.reasons.forEach(reason => {
+        const li = document.createElement('li');
+        li.textContent = reason;
+        reasonsList.appendChild(li);
+    });
+}
+
     
     // Animate confidence meter
     setTimeout(() => {
