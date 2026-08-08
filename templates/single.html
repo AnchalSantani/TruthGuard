@@ -21,6 +21,7 @@
                 <a href="{{ url_for('bulk_verification') }}" class="nav-link">Bulk Check</a>
                 <a href="{{ url_for('image_verification') }}" class="nav-link">Image OCR</a>
                 <a href="{{ url_for('file_verification') }}" class="nav-link">File Upload</a>
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
             </div>
         </div>
     </nav>
@@ -101,23 +102,46 @@
                     <div class="card-header">
                         <h2><i class="fas fa-chart-bar"></i> Analysis Results</h2>
                         <div class="analysis-meta">
-                            <span id="analysis-time"></span>
-                            <span id="analysis-id"></span>
+                            <span id="header-analysis-time"></span>
+                            <span id="header-analysis-id"></span>
                         </div>
                     </div>
                     <div class="card-body">
-                        <!-- Prediction Card -->
-                        <div class="prediction-card">
-                            <div class="prediction-header">
-                                <div class="prediction-title">
-                                    <h3>Verification Result</h3>
-                                    <p>AI-powered analysis of your news content</p>
-                                </div>
-                                <div class="prediction-badge" id="prediction-badge">
-                                    <span id="prediction-emoji"></span>
-                                    <span id="prediction-text"></span>
-                                </div>
-                            </div>
+                        <div class="verification-hero">
+
+    <div class="report-title">
+
+        <div class="shield-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+
+        <div>
+            <h2>TruthGuard Verification Report</h2>
+            <p>AI-powered credibility assessment</p>
+        </div>
+
+    </div>
+
+    <div class="verdict-section">
+
+        <div class="prediction-badge" id="prediction-badge">
+            <span id="prediction-emoji"></span>
+            <span id="prediction-text"></span>
+        </div>
+
+        <p class="confidence-text">
+            Confidence:
+            <strong id="hero-confidence">0%</strong>
+        </p>
+
+        <div class="report-meta">
+            <span id="analysis-time"></span>
+            <span id="analysis-id"></span>
+        </div>
+
+    </div>
+
+</div>
                             
                             <!-- Confidence Meter -->
                             <div class="confidence-section">
@@ -151,7 +175,7 @@
             <h3>TruthGuard Trust Score</h3>
         </div>
 
-        <p id="trust-score">0 / 100</p>
+        <div class="trust-score-value"><p id="trust-score">0</p><span>/100</span></div>
 
         <span class="trust-label">
             Overall credibility based on AI analysis
@@ -171,7 +195,7 @@
         <div class="source-grid">
 
             <div class="source-item">
-                <span class="label">Source</span>
+                <span class="label">Publisher</span>
                 <span id="source-name">Unknown</span>
             </div>
 

@@ -150,16 +150,17 @@ function displayResults(result) {
     predictionText.textContent = result.prediction.toUpperCase();
     
     // Update confidence
-    const confidenceValue = document.getElementById('confidence-value');
+    const heroConfidence = document.getElementById('hero-confidence');
     const confidenceFill = document.getElementById('confidence-fill');
     const confidencePercent = Math.round(result.confidence * 100);
     
-    confidenceValue.textContent = confidencePercent + '%';
+    heroConfidence.textContent = confidencePercent + '%';
+    document.getElementById('confidence-value').textContent = confidencePercent + '%';
 // Trust Score
 const trustScore = document.getElementById('trust-score');
 
 if (trustScore) {
-    trustScore.textContent = result.trustScore + '/100';
+    trustScore.textContent = result.trustScore;
 }
 
 // Reasons
@@ -184,6 +185,11 @@ if (reasonsList) {
     // Update word lists
     updateWordList('fake-words-list', result.fakeWords, 'fake');
     updateWordList('real-words-list', result.realWords, 'real');
+
+    document.getElementById('source-name').textContent = result.source || 'Unknown publisher';
+    document.getElementById('source-category').textContent = result.sourceCategory || 'Unknown';
+    document.getElementById('source-credibility').textContent = result.sourceCredibility || 'Unverified';
+    document.getElementById('source-reason').textContent = result.sourceReason || 'No source assessment is available.';
     
     // Update analysis metadata
     document.getElementById('analysis-time').textContent = 'Analyzed just now';

@@ -1,87 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TruthGuard Dashboard</title>
-
-    <link rel="stylesheet"
-        href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-
 <body>
-
-    <div class="dashboard-header">
-        <h1>TruthGuard Dashboard</h1>
-        <p>Monitor fake news detection analytics in real time</p>
-    </div>
-
-    <div class="stats-container">
-
-        <div class="card">
-            <h2>Total Predictions</h2>
-            <p>{{ total }}</p>
+    <nav class="navbar">
+        <a class="brand" href="{{ url_for('landing') }}"><i class="fas fa-shield-alt"></i><span>TruthGuard</span></a>
+        <div class="nav-actions">
+            <a href="{{ url_for('single_verification') }}"><i class="fas fa-plus"></i> New analysis</a>
+            <a href="{{ url_for('landing') }}">Home</a>
         </div>
-
-        <div class="card">
-            <h2>Real News</h2>
-            <p>{{ real }}</p>
-        </div>
-
-        <div class="card">
-            <h2>Fake News</h2>
-            <p>{{ fake }}</p>
-        </div>
-
-        <div class="card">
-            <h2>Average Confidence</h2>
-            <p>{{ avg_confidence }}%</p>
-        </div>
-
-    </div>
-
-    <div class="history-section">
-
-        <h2>Recent Predictions</h2>
-
-        <table id="historyTable">
-
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Prediction</th>
-                    <th>Confidence</th>
-                    <th>Timestamp</th>
-                </tr>
-            </thead>
-
-            <tbody>
-    {% for row in history %}
-    <tr>
-        <td>{{ row[0] }}</td>
-
-        <td>
-            {% if row[2] == 'real' %}
-                ✅ Real
-            {% else %}
-                ❌ Fake
-            {% endif %}
-        </td>
-
-        <td>{{ "%.2f"|format(row[3] * 100) }}%</td>
-
-        <td>{{ row[4][:19].replace('T', ' ') }}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-
-        </table>
-
-    </div>
-
+    </nav>
+    <main class="shell">
+        <header class="dashboard-header">
+            <div><span class="eyebrow">Analytics workspace</span><h1>Verification dashboard</h1><p>A clear view of every credibility assessment made with TruthGuard.</p></div>
+            <a class="primary-action" href="{{ url_for('single_verification') }}"><i class="fas fa-wand-magic-sparkles"></i> Analyze content</a>
+        </header>
+        <section class="stats-container" aria-label="Verification statistics">
+            <article class="stat-card"><span class="stat-icon purple"><i class="fas fa-chart-line"></i></span><div><p>Total analyses</p><strong>{{ total }}</strong><small>All-time verifications</small></div></article>
+            <article class="stat-card"><span class="stat-icon green"><i class="fas fa-circle-check"></i></span><div><p>Credible content</p><strong>{{ real }}</strong><small>Classified as real</small></div></article>
+            <article class="stat-card"><span class="stat-icon red"><i class="fas fa-shield-halved"></i></span><div><p>Flagged content</p><strong>{{ fake }}</strong><small>Needs closer review</small></div></article>
+            <article class="stat-card"><span class="stat-icon amber"><i class="fas fa-gauge-high"></i></span><div><p>Avg. confidence</p><strong>{{ avg_confidence }}<em>%</em></strong><small>Model certainty</small></div></article>
+        </section>
+        <section class="history-section">
+            <div class="section-heading"><div><span class="eyebrow">Activity</span><h2>Recent verifications</h2></div><a href="{{ url_for('single_verification') }}">Run a new check <i class="fas fa-arrow-right"></i></a></div>
+            <div class="table-wrap">
+                <table id="historyTable"><thead><tr><th>Report</th><th>Verdict</th><th>Confidence</th><th>Analyzed</th></tr></thead>
+                <tbody>{% for row in history %}<tr><td><span class="report-id">#{{ row[0] }}</span></td><td>{% if row[2] == 'real' %}<span class="status real"><i class="fas fa-circle-check"></i> Likely real</span>{% else %}<span class="status fake"><i class="fas fa-triangle-exclamation"></i> Needs review</span>{% endif %}</td><td><div class="confidence"><span style="width: {{ (row[3] * 100)|round|int }}%"></span></div><b>{{ "%.0f"|format(row[3] * 100) }}%</b></td><td>{{ row[4][:19].replace('T', ' ') }}</td></tr>{% else %}<tr><td colspan="4" class="empty"><i class="fas fa-folder-open"></i><br>No reports yet. Your analysis history will appear here.</td></tr>{% endfor %}</tbody></table>
+            </div>
+        </section>
+    </main>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-
 </body>
-
 </html>
